@@ -1,0 +1,26 @@
+WITH T1 AS (
+	SELECT cust, prod, month, sum(quant) AS MONTH_TOTAL_SALE
+	FROM sales
+	GROUP BY cust, prod, month
+	ORDER BY cust, prod, month
+), T2 AS (
+	SELECT T1.cust, T1.prod, T1.month, T1.MONTH_TOTAL_SALE, SUM(T1_COPY.MONTH_TOTAL_SALE) AS CUMULATIVE_SALE
+	FROM T1
+ 	JOIN T1 AS T1_COPY ON T1.month >= T1_COPY.month AND T1.cust = T1_COPY.cust AND T1.prod = T1_COPY.prod
+	GROUP BY T1.cust, T1.prod, T1.month, T1.MONTH_TOTAL_SALE
+	ORDER BY cust, prod, month
+), T3 AS (
+	SELECT cust, prod, SUM(MONTH_TOTAL_SALE) AS TOTAL_SALE
+	FROM T1
+	GROUP BY cust, prod
+), T4 AS (
+	SELECT T2.cust, T2.prod, T2.month
+	FROM T2, T3
+	WHERE T2.cust = T3.cust AND T2.prod = T3.prod AND T2.CUMULATIVE_SALE >= (0.75 * T3.TOTAL_SALE)
+), T5 AS (
+	SELECT cust, prod, MIN(month) AS target
+	FROM T4
+	GROUP BY cust, prod
+)
+SELECT cust AS "CUSTOMER", prod AS "PRODUCT", target AS "75% PURCHASED BY MONTH"
+FROM T5

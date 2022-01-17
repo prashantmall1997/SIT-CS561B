@@ -1,0 +1,19 @@
+WITH one as (
+	select cust as CUSTOMER,min(quant) as MIN_Q,max(quant) as MAX_Q, ROUND(AVG(quant)) as AVG_Q
+	from sales 
+	group by cust
+),
+min_one as (
+	select CUSTOMER,MIN_Q,prod as MIN_PROD, date as MIN_DATE, state as ST, AVG_Q 
+	from sales
+	inner join one AS one on sales.quant = one.MIN_Q and sales.cust = one.CUSTOMER 
+),
+max_one as (
+	select CUSTOMER,MAX_Q,prod as MAX_PROD, date as MAX_DATE, state as ST, AVG_Q
+	from sales
+	inner join one on sales.quant = one.MAX_Q and sales.cust = one.CUSTOMER 
+)
+select min_one.CUSTOMER, MIN_Q, MIN_PROD, MIN_DATE, min_one.ST, MAX_Q, MAX_PROD, MAX_DATE, max_one.ST , min_one.AVG_Q
+from min_one
+inner join max_one on min_one.CUSTOMER = max_one.customer
+ORDER BY CUSTOMER

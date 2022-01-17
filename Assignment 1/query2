@@ -1,0 +1,41 @@
+WITH october AS (
+	SELECT cust AS CUSTOMER, prod AS PRODUCT, MAX(quant) AS PROD_MAX
+	FROM sales
+	WHERE month=10 and year>2017
+	GROUP BY cust, prod
+),
+octoberFinal AS (
+	SELECT CUSTOMER, PRODUCT, PROD_MAX AS OCT_MAX, date AS OCT_DATE
+	FROM sales
+	INNER JOIN october ON sales.cust = october.customer AND sales.prod = october.PRODUCT AND sales.quant = october.PROD_MAX
+	WHERE month=10 and year>2017
+),
+november AS (
+	SELECT cust AS CUSTOMER, prod AS PRODUCT, MIN(quant) AS PROD_MIN
+	FROM sales
+	WHERE month=11
+	GROUP BY cust, prod
+),
+novemberFinal AS (
+	SELECT CUSTOMER, PRODUCT, PROD_MIN AS NOV_MIN, date AS NOV_DATE
+	FROM sales
+	INNER JOIN november ON sales.cust = november.customer AND sales.prod = november.PRODUCT AND sales.quant = november.PROD_MIN
+	WHERE month=11
+),
+december AS (
+	SELECT cust AS CUSTOMER, prod AS PRODUCT, MIN(quant) AS PROD_MIN
+	FROM sales
+	WHERE month=12
+	GROUP BY cust, prod
+),
+decemberFinal AS (
+	SELECT CUSTOMER, PRODUCT, PROD_MIN AS DEC_MIN, date AS DEC_DATE
+	FROM sales
+	INNER JOIN december ON sales.cust = december.customer AND sales.prod = december.PRODUCT AND sales.quant = december.PROD_MIN
+	WHERE month=12
+)
+SELECT octoberFinal.CUSTOMER, octoberFinal.PRODUCT, OCT_MAX, OCT_DATE, NOV_MIN, NOV_DATE, DEC_MIN, DEC_DATE
+FROM octoberFinal 
+FULL OUTER JOIN novemberFinal ON octoberFinal.CUSTOMER = novemberFinal.CUSTOMER and octoberFinal.PRODUCT = novemberFinal.PRODUCT
+FULL OUTER JOIN decemberFinal ON octoberFinal.CUSTOMER = decemberFinal.CUSTOMER and octoberFinal.PRODUCT = decemberFinal.PRODUCT
+ORDER BY CUSTOMER

@@ -1,0 +1,25 @@
+WITH month AS (
+	SELECT prod, month, sum(quant) AS quant
+	FROM sales
+	GROUP BY prod, month
+), max_prod AS (
+	SELECT prod, max(quant) as quant
+	FROM month
+	GROUP BY prod
+), min_prod AS (
+	SELECT prod, MIN(quant) AS quant
+	FROM month
+	GROUP BY prod
+), most_fav AS (
+	SELECT max_prod.prod, month.month
+	FROM max_prod
+	INNER JOIN month ON max_prod.quant = month.quant and max_prod.prod = month.prod 
+), least_fav AS (
+	SELECT min_prod.prod, month.month 
+	FROM min_prod
+	INNER JOIN month ON min_prod.quant = month.quant and min_prod.prod = month.prod 
+)
+SELECT most_fav.prod, most_fav.month AS MOST_FAV_MO, least_fav.month AS LEAST_FAV_MO
+FROM most_fav
+INNER JOIN least_fav ON most_fav.prod = least_fav.prod
+ORDER BY PROD

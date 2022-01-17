@@ -1,0 +1,65 @@
+WITH table1 AS(
+	SELECT cust, prod, state, avg(quant), '1' AS "Q1"
+	FROM sales
+	WHERE month = 1 or month = 2 or month = 3
+	GROUP BY cust, prod, state
+	order by cust, prod, state
+), table2 AS(
+	SELECT cust, prod, state, avg(quant), '2' AS Q2
+	FROM sales
+	WHERE month = 4 or month = 5 or month = 6
+	GROUP BY cust, prod, state
+	order by cust, prod, state
+), table3 AS(
+	SELECT cust, prod, state, avg(quant), '3' AS Q3
+	FROM sales
+	WHERE month = 7 or month = 8 or month = 9
+	GROUP BY cust, prod, state
+	order by cust, prod, state
+), table4 AS(
+	SELECT cust, prod, state, avg(quant), '4' AS Q4
+	FROM sales
+	WHERE month = 10 or month = 11 or month = 12
+	GROUP BY cust, prod, state
+	order by cust, prod, state
+), table5 AS(
+	SELECT sales.cust AS "CUSTOMER", sales.prod AS "PRODUCT", sales.state AS "STATE", 1 AS "Q1", CAST(NULL AS REAL) AS "BEFORE_AVG", table2.avg AS "AFTER_AVG"
+	FROM sales
+	LEFT OUTER JOIN table1 ON sales.cust = table1.cust and sales.prod = table1.prod and sales.state = table1.state
+	LEFT OUTER JOIN table2 ON sales.cust = table2.cust and sales.prod = table2.prod and sales.state = table2.state
+	GROUP BY sales.cust, sales.prod, sales.state, table2.avg
+	order by sales.cust, sales.prod, sales.state
+), table6 AS(
+	SELECT sales.cust, sales.prod, sales.state, 2 AS "Q1", table1.avg AS "BEFORE_AVG", table3.avg AS "AFTER_AVG"
+	FROM sales
+	LEFT OUTER JOIN table1 ON sales.cust = table1.cust and sales.prod = table1.prod and sales.state = table1.state
+	LEFT OUTER JOIN table3 ON sales.cust = table3.cust and sales.prod = table3.prod and sales.state = table3.state
+	GROUP BY sales.cust, sales.prod, sales.state, table1.avg, table3.avg
+	order by sales.cust, sales.prod, sales.state
+), table7 AS(
+	SELECT sales.cust, sales.prod, sales.state, 3 AS "Q1", table2.avg AS "BEFORE_AVG", table4.avg AS "AFTER_AVG"
+	FROM sales
+	LEFT OUTER JOIN table2 ON sales.cust = table2.cust and sales.prod = table2.prod and sales.state = table2.state
+	LEFT OUTER JOIN table4 ON sales.cust = table4.cust and sales.prod = table4.prod and sales.state = table4.state
+	GROUP BY sales.cust, sales.prod, sales.state, table2.avg, table4.avg
+	order by sales.cust, sales.prod, sales.state
+), table8 AS(
+	SELECT sales.cust AS "CUSTOMER", sales.prod AS "PRODUCT", sales.state AS "STATE", 4 AS "Q1", table3.avg AS "BEFORE_AVG", CAST(NULL AS REAL)
+	FROM sales
+	LEFT OUTER JOIN table3 ON sales.cust = table3.cust and sales.prod = table3.prod and sales.state = table3.state
+	LEFT OUTER JOIN table4 ON sales.cust = table4.cust and sales.prod = table4.prod and sales.state = table4.state
+	GROUP BY sales.cust, sales.prod, sales.state, table3.avg
+	order by sales.cust, sales.prod, sales.state
+)
+SELECT *
+FROM table5
+UNION
+SELECT *
+FROM table6
+UNION
+SELECT *
+FROM table7
+UNION
+SELECT *
+FROM table8
+ORDER BY "Q1"

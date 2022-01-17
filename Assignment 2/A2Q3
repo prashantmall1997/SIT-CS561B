@@ -1,0 +1,35 @@
+WITH T1 AS(
+	SELECT prod, quant
+	FROM sales
+	ORDER BY prod, quant
+), T2 AS (
+	SELECT prod, quant, (SELECT COUNT(quant) FROM sales WHERE quant<=T1.quant AND prod=T1.prod) AS LTET
+	FROM T1
+), T_Temp AS (
+	SELECT prod, MAX(LTET) AS MAX_LTET
+	FROM T2 
+	WHERE prod=T2.prod 
+	GROUP BY prod
+), T3 AS (
+	SELECT T2.prod, (MIN(LTET)+MAX(LTET))/2 AS FLOOR_DIVISION, CEIL((cast((MIN(LTET)+MAX(LTET)) AS FLOAT))/2) AS CEIL_DIVISION 
+	FROM T2, T_Temp
+ 	WHERE T2.prod = T_Temp.prod AND T2.LTET != T_Temp.MAX_LTET
+	GROUP BY T2.prod
+	ORDER BY prod
+), T4 AS (
+	SELECT T2.prod, T2.quant, T2.LTET 
+	FROM T2, T3
+	WHERE T2.prod = T3.prod AND (T2.LTET <= T3.FLOOR_DIVISION OR T2.LTET <= T3.CEIL_DIVISION)
+	ORDER BY T2.prod, T2.quant
+), T5 AS (
+	SELECT T2.prod, T2.quant 
+	FROM T2, T4
+	WHERE T2.prod = T4.prod AND (T2.LTET = (SELECT MAX(LTET) FROM T4 WHERE prod=T2.prod GROUP BY prod))
+	ORDER BY T2.prod, T2.quant
+), T6 AS (
+	SELECT prod, cast(MIN(quant)+MAX(quant) AS FLOAT)/2 AS MEDIAN
+	FROM T5
+	GROUP BY prod
+)
+SELECT prod AS "PRODUCT", median AS "MEDIAN QUANT"
+FROM T6

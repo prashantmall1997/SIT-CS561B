@@ -1,0 +1,35 @@
+WITH prodCust AS (
+	select prod,cust, state AS state, avg(quant) AS AVG
+	from sales
+	WHERE year between 2016 and 2020
+	group by prod,cust, state
+), CT AS (
+	SELECT prod, cust, avg AS CT, state AS state
+	FROM prodCust
+	WHERE STATE = 'CT'
+), NY AS (
+	SELECT prod, cust, avg AS NY, state AS state
+	FROM prodCust
+	WHERE STATE = 'NY'
+), NJ AS (
+	SELECT prod, cust, avg AS NJ, state AS state
+	FROM prodCust
+	WHERE STATE = 'NJ'
+), PA AS (
+	SELECT prod, cust, avg AS PA, state AS state
+	FROM prodCust
+	WHERE STATE = 'PA'
+), average as (
+	SELECT cust,prod, avg(quant) AS average, sum(quant) AS quant, count(quant) AS quants
+	FROM sales
+	GROUP BY cust,prod
+	ORDER BY cust
+)
+SELECT prodCust.prod AS PRODUCT, prodCust.cust AS CUSTOMER, CT.CT AS CT_AVG, NY.NY AS NY_AVG, NJ.NJ AS NJ_AVG, PA.PA AS PA_AVG, average.average AS AVERAGE, average.quant AS TOTAL, average.quants AS COUNT
+FROM prodCust
+INNER JOIN CT ON prodCust.prod = CT.prod and prodCust.cust = CT.cust and prodCust.state = CT.state
+INNER JOIN NY ON prodCust.prod = NY.prod and prodCust.cust = NY.cust --and prodCust.state = NY.state
+INNER JOIN NJ ON prodCust.prod = NJ.prod and prodCust.cust = NJ.cust --and prodCust.state = NJ.state
+INNER JOIN PA ON prodCust.prod = PA.prod and prodCust.cust = PA.cust --and prodCust.state = PA.state
+INNER JOIN average ON prodCust.prod = average.prod and prodCust.cust = average.cust
+ORDER BY CUSTOMER

@@ -1,0 +1,31 @@
+WITH table1 AS(
+	SELECT cust, month, prod, state, avg(quant)
+	FROM sales
+	GROUP BY cust, month, prod, state
+	order by cust, month, prod, state
+), table2 AS(
+	SELECT sales.cust, table1.prod, sales.month, sales.state, avg(sales.quant)
+	FROM sales, table1
+	WHERE sales.prod!=table1.prod and sales.cust = table1.cust and sales.month = table1.month and sales.state = table1.state
+	GROUP BY sales.cust, sales.month, sales.state, table1.prod
+	order by cust, month, prod, state
+), table3 AS(
+	SELECT sales.cust, sales.prod, table1.month, sales.state, avg(sales.quant)
+	FROM sales, table1
+	WHERE sales.prod=table1.prod and sales.cust = table1.cust and sales.month != table1.month and sales.state = table1.state
+	GROUP BY sales.cust, sales.prod, sales.state, table1.month
+ 	order by cust, month, prod, state
+), table4 AS(
+	SELECT sales.cust, sales.prod, sales.month, table1.state, avg(sales.quant)
+	FROM sales, table1
+	WHERE sales.prod=table1.prod and sales.cust = table1.cust and sales.month = table1.month and sales.state != table1.state
+	GROUP BY sales.cust, sales.prod, table1.state, sales.month
+ 	order by cust, month, prod, state
+)    
+SELECT table1.cust AS "CUSTOMER", table1.prod AS "PRODUCT", table1.month AS "MONTH", table1.state AS "STATE", table1.avg AS "CUST_AVG", table2.avg AS "OTHER_PROD_AVG", table3.avg AS "OTHER_MONTH_AVG", table4.avg AS "OTHER_STATE_AVG"
+FROM table1
+FULL OUTER JOIN table2 ON table1.cust = table2.cust and table1.prod = table2.prod and table1.month = table2.month and table1.state = table2.state 
+FULL OUTER JOIN table3 ON table1.cust = table3.cust and table1.prod = table3.prod and table1.month = table3.month and table1.state = table3.state
+FULL OUTER JOIN table4 ON table1.cust = table4.cust and table1.prod = table4.prod and table1.month = table4.month and table1.state = table4.state
+-- WHERE table1.cust = table2.cust and table1.prod = table2.prod and table1.month = table2.month and table1.state = table2.state and table1.cust = table3.cust and table1.prod = table3.prod and table1.month = table3.month and table1.state = table3.state and table1.cust = table4.cust and table1.prod = table4.prod and table1.month = table4.month and table1.state = table4.state
+	

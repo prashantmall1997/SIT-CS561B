@@ -1,0 +1,32 @@
+WITH MONTH AS (
+	SELECT month, prod, sum(quant) AS QUANT
+	from sales
+	group by month, prod
+),
+MAX AS (
+	SELECT month, MAX(quant) AS QUANT
+	FROM MONTH
+	GROUP BY MONTH
+),
+MIN AS (
+	SELECT month, MIN(quant) AS QUANT
+	FROM MONTH
+	GROUP BY MONTH
+),
+MIN_MONTH AS
+(
+	SELECT month.month, month.prod, month.quant
+	FROM MONTH
+	INNER JOIN MIN ON month.month = min.month and month.quant = min.quant
+	ORDER BY MONTH
+),
+MAX_MONTH AS 
+(
+	SELECT month.month, month.prod, month.quant
+	FROM MONTH
+	INNER JOIN MAX ON month.month = max.month and month.quant = max.quant
+	ORDER BY MONTH
+)
+SELECT max_month.month, max_month.prod AS MOST_POPULAR_PROD, max_month.quant AS MOST_POP_TOTAL_Q, min_month.prod AS LEAST_POPULAR_PROD, min_month.quant AS LEAST_POP_TOTAL_Q
+FROM MAX_MONTH
+FULL OUTER JOIN MIN_MONTH on MAX_MONTH.month = MIN_MONTH.month
